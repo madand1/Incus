@@ -1,0 +1,8 @@
+# roles/db/tasks/secure.yml
+- name: Crear usuario app con permisos mínimos (ejemplo)
+  mysql_user:
+    name: appuser
+    password: "appPass123"
+    priv: "*.*:USAGE"
+    host: "%"
+  when: db_pkg == "mariadb-server"

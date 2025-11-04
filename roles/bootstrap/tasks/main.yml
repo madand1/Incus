@@ -1,0 +1,43 @@
+- name: Instalar SSH y Python
+  apt:
+    name:
+      - openssh-server
+      - python3
+    state: present
+    update_cache: true
+
+- name: Asegurar que el servicio SSH está activo
+  service:
+    name: ssh
+    state: started
+    enabled: true
+
+- name: Permitir login root con clave pública
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?PermitRootLogin'
+    line: 'PermitRootLogin yes'
+  notify: Restart SSH
+
+- name: Permitir autenticación por clave y contraseña
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?PasswordAuthentication'
+    line: 'PasswordAuthentication yes'
+  notify: Restart SSH
+
+- name: Crear directorio .ssh de root
+  file:
+    path: /root/.ssh
+    state: directory
+    owner: root
+    group: root
+    mode: '0700'
+
+- name: Copiar clave pública de tu host
+  copy:
+    src: /home/andy/.ssh/id_ed25519.pub
+    dest: /root/.ssh/authorized_keys
+    owner: root
+    group: root
+    mode: '0600'

@@ -1,0 +1,8 @@
+- name: Despliegue del entorno TFG
+  hosts: all
+  become: true
+  roles:
+    - bootstrap
+    - { role: db, when: "'db' in group_names" }
+    - { role: wordpress, when: "'web' in group_names" }
+    - { role: client, when: "'client' in group_names" }

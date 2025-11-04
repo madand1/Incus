@@ -1,0 +1,47 @@
+---
+
+- name: Instalar dependencias de WordPress
+  apt:
+    name:
+      - apache2
+      - php
+      - php-mysql
+      - libapache2-mod-php
+      - curl
+      - tar
+    state: present
+    update_cache: true
+
+- name: Descargar WordPress
+  get_url:
+    url: https://wordpress.org/latest.tar.gz
+    dest: /tmp/wordpress.tar.gz
+
+- name: Extraer WordPress en /var/www/html
+  unarchive:
+    src: /tmp/wordpress.tar.gz
+    dest: /var/www/html/
+    remote_src: yes
+    extra_opts: [--strip-components=1]
+    creates: /var/www/html/wp-settings.php
+
+- name: Eliminar la página por defecto de Apache
+  file:
+    path: /var/www/html/index.html
+    state: absent
+
+- name: Configurar wp-config.php
+  template:
+    src: wp-config.php.j2
+    dest: /var/www/html/wp-config.php
+    owner: www-data
+    group: www-data
+    mode: '0644'
+
+- name: Ajustar permisos de WordPress
+  file:
+    path: /var/www/html
+    owner: www-data
+    group: www-data
+    recurse: yes
+

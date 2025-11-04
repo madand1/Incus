@@ -1,0 +1,15 @@
+- name: Instalar curl
+  apt:
+    name: curl
+    state: present
+    update_cache: true
+
+- name: Probar acceso a WordPress
+  uri:
+    url: "http://{{ hostvars['web01'].ansible_host }}/"
+    return_content: true
+  register: wp_check
+
+- name: Mostrar contenido devuelto
+  debug:
+    var: wp_check.content

@@ -1,0 +1,2 @@
+# roles/db/vars/main.yml
+db_pkg: mariadb-server

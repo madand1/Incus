@@ -1,0 +1,61 @@
+---
+- name: Instalar dependencias de Python para MySQL
+  apt:
+    name:
+      - python3-pymysql
+    state: present
+    update_cache: true
+
+- name: Instalar MariaDB
+  apt:
+    name: mariadb-server
+    state: present
+    update_cache: true
+
+- name: Asegurar MariaDB iniciado
+  service:
+    name: mariadb
+    state: started
+    enabled: true
+
+- name: Configurar MariaDB para escuchar en todas las interfaces
+  lineinfile:
+    path: /etc/mysql/mariadb.conf.d/50-server.cnf
+    regexp: '^bind-address'
+    line: 'bind-address = 0.0.0.0'
+    insertafter: '^
+
+\[mysqld\]
+
+'
+  notify: Restart MariaDB
+
+
+# ⚡ Crear usuario administrador para Ansible
+- name: Crear usuario administrador de MariaDB para Ansible
+  command: >
+    mysql -u root -e "CREATE USER IF NOT EXISTS 'admin'@'localhost' IDENTIFIED BY 'adminpass';
+    GRANT ALL PRIVILEGES ON *.* TO 'admin'@'localhost' WITH GRANT OPTION;
+    FLUSH PRIVILEGES;"
+  args:
+    creates: /root/.ansible_db_user_created
+  register: create_admin
+  changed_when: create_admin.rc == 0
+
+# ⚡ Usar el usuario admin para gestionar la DB de WordPress
+- name: Crear base de datos WordPress
+  community.mysql.mysql_db:
+    name: wordpress
+    state: present
+    login_user: admin
+    login_password: adminpass
+
+- name: Crear usuario remoto para WordPress
+  community.mysql.mysql_user:
+    name: wpuser
+    password: wppass
+    priv: 'wordpress.*:ALL'
+    host: '%'
+    state: present
+    login_user: admin
+    login_password: adminpass

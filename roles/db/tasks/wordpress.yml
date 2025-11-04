@@ -1,0 +1,12 @@
+- name: Crear base de datos para WordPress
+  mysql_db:
+    name: wordpress
+    state: present
+
+- name: Crear usuario de WordPress
+  mysql_user:
+    name: wpuser
+    password: wppass
+    priv: 'wordpress.*:ALL'
+    host: '%'
+    state: present
